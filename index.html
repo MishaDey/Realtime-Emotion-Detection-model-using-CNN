@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+<title>REALTIME WEBCAM DEMONSTRATION</title>
+<link rel="shortcut icon" href="#">
+</head>
+ 
+<body>
+<div id="container">
+    <video id="videoElement" width="100%" height="60%" autoplay=True style="display: inline;"></video>
+    <p id="greeting"></p>
+</div>
+    
+
+<script type="text/javascript" charset="utf-8">
+    
+    var socket = io('https://real-time-emotion-detection.herokuapp.com/');
+
+    socket.on('connect', function(){
+        console.log("Connected...!", socket.connected)
+    });
+    var video = $("#videoElement").get()[0];
+
+    if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function (stream) {
+            video.srcObject = stream;
+            video.play();
+        })
+        .catch(function (err0r) {
+            console.log(err0r)
+            console.log("Something went wrong!");
+        });
+    }
+  
+
+    const FPS = 30;
+    setInterval(() => {
+    
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        var data = canvas.toDataURL('image/jpeg');
+        var type = "image/jpeg"
+        data = data.replace('data:' + type + ';base64,', ''); 
+        socket.emit('image', data);
+    }, 10000/FPS);
+   socket.on('response_back', function(imae){
+        var msg=imae;
+        msg.fontsize(40);
+        $("#greeting").text(msg);
+    });
+
+</script>
+</body>
+</html>     
